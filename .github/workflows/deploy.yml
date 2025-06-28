@@ -35,7 +35,9 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - name: Install dependencies
+      - name: Install angular
+        run: npm i -g @angular/cli
+      - name: Install dependency
         run: npm i
       - name: Build
         run: ng build
