@@ -26,7 +26,7 @@ pipeline {
 
     stage('Backup Current Version') {
       steps {
-        sshagent (credentials: ["server-dev"]) {
+        sshagent (credentials: ["devops"]) {
           sh """
             ssh ${SSH_USER}@${SSH_HOST} '
               mkdir -p ${BACKUP_DIR} &&
@@ -40,7 +40,7 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        sshagent (credentials: ["server-dev"]) {
+        sshagent (credentials: ["devops"]) {
           sh """
             scp -r ./dist/my-dream-app/browser/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/
           """
@@ -57,7 +57,7 @@ pipeline {
     failure {
       echo "Deployment failed. Rolling back..."
 
-      sshagent (credentials: ["server-dev"]) {
+      sshagent (credentials: ["devops"]) {
         sh """
           ssh ${SSH_USER}@${SSH_HOST} '
             mkdir -p ${BACKUP_DIR} &&
