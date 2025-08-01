@@ -19,14 +19,8 @@ pipeline {
       steps {
         echo "Installing npm"
         sh 'npm install'
-        echo "npm version"
-        sh 'npm -v'
-        echo "Installing angular"
-        sh 'npm install -g @angular/cli'
-        echo "ng version"
-        sh 'ng v'
         echo "Building the project"
-        sh 'ng build'
+        sh 'ng build --watch --configuration development'
       }
     }
 
