@@ -2,9 +2,10 @@ pipeline {
   agent any
 
   environment {
+    SSH_USER = 'ubuntu'
     DEPLOY_DIR = "/var/www/myapp"
     BACKUP_DIR = "/var/www/myapp_backup"
-    BUILD_DIR = "dist/my-dream-app/browser"
+    SSH_HOST = "51.21.171.65" // Replace with actual IP
   }
 
   stages {
@@ -16,34 +17,40 @@ pipeline {
 
     stage('Build') {
       steps {
+        echo "Installing npm"
         sh 'npm install'
-        sh 'npx ng build --configuration production'
+        echo "Building the project"
+        sh 'ng build'
       }
     }
 
     stage('Backup Current Version') {
       steps {
-        script {
+        sshagent (credentials: ["devops"]) {
           sh '''
-            mkdir -p "${BACKUP_DIR}"
-            if [ -d "${DEPLOY_DIR}" ] && [ "$(ls -A ${DEPLOY_DIR})" ]; then
-              rm -rf "${BACKUP_DIR}"/*
-              cp -r "${DEPLOY_DIR}"/* "${BACKUP_DIR}/"
-            else
-              echo "Nothing to backup in ${DEPLOY_DIR}"
-            fi
+            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
+              BACKUP_DIR="/var/www/myapp_backup"
+              DEPLOY_DIR="/var/www/myapp"
+
+              mkdir -p "$BACKUP_DIR" &&
+              if [ -d "$DEPLOY_DIR" ] && [ "$(ls -A "$DEPLOY_DIR")" ]; then
+                rm -rf "$BACKUP_DIR"/* &&
+                cp -r "$DEPLOY_DIR"/* "$BACKUP_DIR"/
+              else
+                echo "No files to back up in $DEPLOY_DIR. Skipping backup."
+              fi
+            '
           '''
+
         }
       }
     }
 
     stage('Deploy') {
       steps {
-        script {
+        sshagent (credentials: ["devops"]) {
           sh '''
-            mkdir -p "${DEPLOY_DIR}"
-            rm -rf "${DEPLOY_DIR}"/*
-            cp -r "${BUILD_DIR}/"* "${DEPLOY_DIR}/"
+            scp -r ./dist/my-dream-app/browser/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/
           '''
         }
       }
@@ -52,21 +59,31 @@ pipeline {
 
   post {
     success {
-      echo "✅ Deployment successful!"
+      echo "Deployment succeeded."
     }
+
     failure {
-      echo "❌ Deployment failed. Rolling back..."
-      script {
+      echo "Deployment failed. Rolling back..."
+
+      sshagent (credentials: ["devops"]) {
         sh '''
-          if [ -d "${BACKUP_DIR}" ] && [ "$(ls -A ${BACKUP_DIR})" ]; then
-            rm -rf "${DEPLOY_DIR}"/*
-            cp -r "${BACKUP_DIR}/"* "${DEPLOY_DIR}/"
-            echo "Rollback complete."
-          else
-            echo "Nothing to rollback. Backup not found or empty."
-          fi
+          ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
+            BACKUP_DIR="/var/www/myapp_backup"
+            DEPLOY_DIR="/var/www/myapp"
+
+            mkdir -p "$BACKUP_DIR" &&
+            if [ -d "$DEPLOY_DIR" ] && [ "$(ls -A "$DEPLOY_DIR")" ]; then
+              rm -rf "$BACKUP_DIR"/* &&
+              cp -r "$DEPLOY_DIR"/* "$BACKUP_DIR"/
+            else
+              echo "No files to back up in $DEPLOY_DIR. Skipping backup."
+            fi
+          '
         '''
+
       }
+
+      error "Deployment failed and rollback attempted."
     }
   }
 }
