@@ -11,7 +11,7 @@ pipeline {
     SSH_USER = 'ubuntu' // change if needed
     DEPLOY_DIR = "/var/www/myapp" // adjust this
     BACKUP_DIR = "/var/www/myapp_backup"
-    SSH_HOST = "16.171.154.7" // Use Jenkins credentials ID for SSH per environment
+    SSH_HOST = "51.21.191.169" // Use Jenkins credentials ID for SSH per environment
   }
 
   stages {
