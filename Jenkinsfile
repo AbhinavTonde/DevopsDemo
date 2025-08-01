@@ -5,13 +5,13 @@ pipeline {
     SSH_USER = 'ubuntu'
     DEPLOY_DIR = "/var/www/myapp"
     BACKUP_DIR = "/var/www/myapp_backup"
-    SSH_HOST = "51.21.171.65"
+    SSH_HOST = "51.21.171.65" // Replace with actual IP
   }
 
   stages {
     stage('Checkout') {
       steps {
-        git branch: "main", url: 'https://github.com/AbhinavTonde/DevopsDemo.git'
+        git branch: "main", url: '<GITHUB REPOSITORY>'
       }
     }
 
@@ -28,10 +28,14 @@ pipeline {
       steps {
         sshagent (credentials: ["devops"]) {
           sh """
-            ssh ${SSH_USER}@${SSH_HOST} '
+            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
               mkdir -p ${BACKUP_DIR} &&
               rm -rf ${BACKUP_DIR}/* &&
-              cp -r ${DEPLOY_DIR}/* ${BACKUP_DIR}/
+              if [ -d ${DEPLOY_DIR} ] && [ "$(ls -A ${DEPLOY_DIR})" ]; then
+                cp -r ${DEPLOY_DIR}/* ${BACKUP_DIR}/
+              else
+                echo "No files to back up in ${DEPLOY_DIR}. Skipping backup."
+              fi
             '
           """
         }
@@ -59,15 +63,19 @@ pipeline {
 
       sshagent (credentials: ["devops"]) {
         sh """
-          ssh ${SSH_USER}@${SSH_HOST} '
-            mkdir -p ${BACKUP_DIR} &&
-            rm -rf ${DEPLOY_DIR}/* &&
-            cp -r ${BACKUP_DIR}/* ${DEPLOY_DIR}/
+          ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
+            if [ -d ${BACKUP_DIR} ] && [ "$(ls -A ${BACKUP_DIR})" ]; then
+              mkdir -p ${DEPLOY_DIR} &&
+              rm -rf ${DEPLOY_DIR}/* &&
+              cp -r ${BACKUP_DIR}/* ${DEPLOY_DIR}/
+            else
+              echo "No backup found. Rollback skipped."
+            fi
           '
         """
       }
 
-      error "Deployment failed and rollback completed."
+      error "Deployment failed and rollback attempted."
     }
   }
 }
