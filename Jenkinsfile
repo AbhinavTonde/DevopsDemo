@@ -18,13 +18,11 @@ pipeline {
     stage('Build') {
       steps {
         echo "Installing npm"
-        sh 'npm install'
+        sh 'npm ci'
         echo "Installing angular"
         sh 'npm install -g @angular/cli'
         echo "Building the project"
         sh 'ng build'
-        echo "Serving the project"
-        sh 'ng build --watch --configuration development'
       }
     }
 
