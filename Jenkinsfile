@@ -20,7 +20,7 @@ pipeline {
         echo "Installing npm"
         sh 'npm install'
         echo "Building the project"
-        sh 'ng build --watch --configuration development'
+        sh 'ng build'
       }
     }
 
@@ -42,7 +42,7 @@ pipeline {
       steps {
         sshagent (credentials: ["server-dev"]) {
           sh """
-            scp -r ./dist/my-dream-app/browser
+            scp -r ./dist/my-dream-app/browser/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/
           """
         }
       }
