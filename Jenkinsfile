@@ -11,7 +11,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git branch: "main", url: '<GITHUB REPOSITORY>'
+        git branch: "main", url: 'https://github.com/AbhinavTonde/DevopsDemo.git'
       }
     }
 
