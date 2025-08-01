@@ -1,12 +1,6 @@
 pipeline {
   agent any
 
-  parameters {
-    string(name: 'DEPLOY_VERSION', defaultValue: 'v1.0.0', description: 'Deployment version')
-    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to deploy')
-    choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Target environment')
-  }
-
   environment {
     SSH_USER = 'ubuntu'
     DEPLOY_DIR = "/var/www/myapp"
@@ -61,7 +55,7 @@ pipeline {
 
   post {
     success {
-      echo "Deployment ${params.DEPLOY_VERSION} to ${params.ENV} succeeded."
+      echo "Deployment succeeded."
     }
 
     failure {
