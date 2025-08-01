@@ -27,7 +27,7 @@ pipeline {
     stage('Backup Current Version') {
       steps {
         sshagent (credentials: ["devops"]) {
-          sh """
+          sh '''
             ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
               mkdir -p ${BACKUP_DIR} &&
               rm -rf ${BACKUP_DIR}/* &&
@@ -37,7 +37,7 @@ pipeline {
                 echo "No files to back up in ${DEPLOY_DIR}. Skipping backup."
               fi
             '
-          """
+          '''
         }
       }
     }
@@ -45,9 +45,9 @@ pipeline {
     stage('Deploy') {
       steps {
         sshagent (credentials: ["devops"]) {
-          sh """
+          sh '''
             scp -r ./dist/my-dream-app/browser/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/
-          """
+          '''
         }
       }
     }
@@ -62,7 +62,7 @@ pipeline {
       echo "Deployment failed. Rolling back..."
 
       sshagent (credentials: ["devops"]) {
-        sh """
+        sh '''
           ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
             if [ -d ${BACKUP_DIR} ] && [ "$(ls -A ${BACKUP_DIR})" ]; then
               mkdir -p ${DEPLOY_DIR} &&
@@ -72,7 +72,7 @@ pipeline {
               echo "No backup found. Rollback skipped."
             fi
           '
-        """
+        '''
       }
 
       error "Deployment failed and rollback attempted."
