@@ -11,7 +11,7 @@ pipeline {
     SSH_USER = 'ubuntu' // change if needed
     DEPLOY_DIR = "/var/www/myapp" // adjust this
     BACKUP_DIR = "/var/www/myapp_backup"
-    SSH_HOST = "13.60.33.83" // Use Jenkins credentials ID for SSH per environment
+    SSH_HOST = "16.171.154.7" // Use Jenkins credentials ID for SSH per environment
   }
 
   stages {
@@ -23,15 +23,17 @@ pipeline {
 
     stage('Build') {
       steps {
-        echo "Installing npm"
-        sh 'npm install' // or your actual build steps
-        echo "Installing angular"
-        sh 'npm install -g @angular/cli'
-        echo "Building the project"
-        sh 'ng build'
-        echo "Serving the project"
-        sh 'ng serve'
-      }
+        echo "Checking npm version"
+        sh 'npm -v'
+
+        echo "Installing project dependencies"
+        sh 'npm install'
+
+        echo "Installing Angular CLI"
+        sh 'npm install -g @angular/cli@18'
+
+        echo "Building the Angular project"
+        sh 'ng build --watch --configuration development'
     }
 
     stage('Backup Current Version') {
