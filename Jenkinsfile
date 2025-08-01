@@ -29,15 +29,19 @@ pipeline {
         sshagent (credentials: ["devops"]) {
           sh '''
             ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
-              mkdir -p ${BACKUP_DIR} &&
-              rm -rf ${BACKUP_DIR}/* &&
-              if [ -d ${DEPLOY_DIR} ] && [ "$(ls -A ${DEPLOY_DIR})" ]; then
-                cp -r ${DEPLOY_DIR}/* ${BACKUP_DIR}/
+              BACKUP_DIR="/var/www/myapp_backup"
+              DEPLOY_DIR="/var/www/myapp"
+
+              mkdir -p "$BACKUP_DIR" &&
+              if [ -d "$DEPLOY_DIR" ] && [ "$(ls -A "$DEPLOY_DIR")" ]; then
+                rm -rf "$BACKUP_DIR"/* &&
+                cp -r "$DEPLOY_DIR"/* "$BACKUP_DIR"/
               else
-                echo "No files to back up in ${DEPLOY_DIR}. Skipping backup."
+                echo "No files to back up in $DEPLOY_DIR. Skipping backup."
               fi
             '
           '''
+
         }
       }
     }
@@ -64,15 +68,19 @@ pipeline {
       sshagent (credentials: ["devops"]) {
         sh '''
           ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '
-            if [ -d ${BACKUP_DIR} ] && [ "$(ls -A ${BACKUP_DIR})" ]; then
-              mkdir -p ${DEPLOY_DIR} &&
-              rm -rf ${DEPLOY_DIR}/* &&
-              cp -r ${BACKUP_DIR}/* ${DEPLOY_DIR}/
+            BACKUP_DIR="/var/www/myapp_backup"
+            DEPLOY_DIR="/var/www/myapp"
+
+            mkdir -p "$BACKUP_DIR" &&
+            if [ -d "$DEPLOY_DIR" ] && [ "$(ls -A "$DEPLOY_DIR")" ]; then
+              rm -rf "$BACKUP_DIR"/* &&
+              cp -r "$DEPLOY_DIR"/* "$BACKUP_DIR"/
             else
-              echo "No backup found. Rollback skipped."
+              echo "No files to back up in $DEPLOY_DIR. Skipping backup."
             fi
           '
         '''
+
       }
 
       error "Deployment failed and rollback attempted."
