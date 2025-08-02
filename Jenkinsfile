@@ -5,7 +5,7 @@ pipeline {
     SSH_USER = 'ubuntu'
     DEPLOY_DIR = "/var/www/myapp"
     BACKUP_DIR = "/var/www/myapp_backup"
-    SSH_HOST = "51.21.171.65" // Replace with actual IP
+    SSH_HOST = "16.171.169.249"
   }
 
   stages {
